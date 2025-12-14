@@ -34,7 +34,7 @@ class Question(Base):
         foreign_keys='Answer.question_id'
     )
 
-    correct_answer_id = Column(Integer, ForeignKey('answers.id'), nullable=True)
+    correct_answer_id = Column(Integer, ForeignKey('answers.id', ondelete='SET NULL'), nullable=True)
 
     correct_answer = relationship(
         'Answer',
@@ -42,7 +42,7 @@ class Question(Base):
         post_update=True
     )
 
-    quest_id = Column(Integer, ForeignKey('quests.id'), nullable=False)
+    quest_id = Column(Integer, ForeignKey('quests.id', ondelete='CASCADE'), nullable=False)
     quest = relationship('Quest', back_populates='questions')
 
 

@@ -1,5 +1,4 @@
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -30,3 +29,25 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="User not found")
 
     return user
+
+
+security_optional = HTTPBearer(auto_error=False)
+
+def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security_optional),
+    db: Session = Depends(get_db)
+):
+    if credentials is None:
+        return None
+
+    token = credentials.credentials
+
+    try:
+        user_id = decode_access_token(token)
+    except Exception:
+        return None
+
+    if not user_id:
+        return None
+
+    return db.query(User).filter(User.id == int(user_id)).first()

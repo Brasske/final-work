@@ -18,7 +18,7 @@ router = APIRouter(
 
 
 @router.get("/")
-def create_quest_route(
+def get_user(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):

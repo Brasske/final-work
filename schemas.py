@@ -13,6 +13,9 @@ class QuestCreate(BaseModel):
     text: str
     questions: List[QuestionCreate]
 
+class AnswerGet(BaseModel):
+    id: int
+
 class UserCreate(BaseModel):
     login: str
     password: str
