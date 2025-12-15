@@ -13,7 +13,10 @@ router = APIRouter(
 )
 
 
-@router.post("/register", response_model=dict)
+@router.post("/register", response_model=dict, 
+            summary="Регистрация нового пользователя",
+            description="Создаёт нового пользователя. Логин должен быть уникальным."
+            )
 async def register(
     user_data: UserCreate,
     db: AsyncSession = Depends(get_db)
@@ -41,7 +44,10 @@ async def register(
 
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse, 
+            summary="Аутентификация пользователя",
+            description="Проверяет логин и пароль после чего возвращает JWT-токен."
+             )
 async def login(
     user_data: UserLogin,
     db: AsyncSession = Depends(get_db)

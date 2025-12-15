@@ -12,7 +12,11 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get(
+        "/",
+        summary="Получить данные профиля текущего пользователя",
+        description="Возвращает основную информацию о залогиненном пользователе: логин, ID и имя."
+        )
 async def get_user(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -23,7 +27,11 @@ async def get_user(
         "user_name": current_user.username,
     }
 
-@router.get("/quests")
+@router.get(
+        "/quests",
+        summary="Получить список квизов, созданных пользователем",
+        description="Возвращает все квизы, текущего пользователя."
+        )
 async def get_user_quests(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -31,7 +39,17 @@ async def get_user_quests(
     res = await crud.get_my_quests(db, current_user.id)
     return res
 
-@router.get("/prigress")
+@router.get(
+        "/progress",
+        summary="Получить прогресс пользователя по пройденным квизам",
+        description="""
+        Возвращает список квизов, в которых пользователь завершил хотя бы один вопрос.
+        Для каждого квиза указывается:
+        - ID и текст квиза,
+        - количество вопросов, на которые пользователь дал правильный ответ,
+        - имя автора квиза.
+        """
+    )
 async def user_quest_progress(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
