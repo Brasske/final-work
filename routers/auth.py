@@ -24,7 +24,7 @@ async def register(
     existing = result.scalar_one_or_none()
 
     if existing:
-        raise HTTPException(status_code=400, detail="User already exists")
+        raise HTTPException(status_code=400, detail="Пользователь уже существует")
 
     hashed = hash_password(user_data.password)
     user = User(
@@ -55,7 +55,7 @@ async def login(
         user_data.password,
         user.hashed_password
     ):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Неверные учетные данные")
 
     token = create_access_token({"sub": str(user.id)})
     return TokenResponse(access_token=token)

@@ -19,15 +19,15 @@ async def get_current_user(
     user_id = decode_access_token(token)
 
     if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Недопустимый токен")
 
     result = await db.execute(
-        select(User).options(selectinload(User.complite_questions)).where(User.id == int(user_id))
+        select(User).options(selectinload(User.completed_questions)).where(User.id == int(user_id))
     )
     user = result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise HTTPException(status_code=401, detail="Пользователь не найден")
 
     return user
 

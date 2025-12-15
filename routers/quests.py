@@ -49,7 +49,7 @@ async def passing_quest(
     user: User | None = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db)
 ):
-    question = await crud.get_question(db, quest_id, question_id)
+    question = await crud.get_question_with_correct_answer(db, quest_id, question_id)
 
     if not question:
         raise HTTPException(status_code=404, detail="Вопрос не найден")
@@ -59,15 +59,16 @@ async def passing_quest(
             "is_correct": False,
             "correct_answer_id": question.correct_answer_id
         }
-    elif user:
-        await crud.get_answer(question_id=question.id, user_id=user.id, db=db)
-        return {"is_correct": True, "saved": True}
-    
-    return {"is_correct": True}
+
+    saved = False
+    if user:
+        saved = await crud.record_correct_answer(db, user.id, quest_id, question_id)
+
+    return {"is_correct": True, "saved": saved}
 
 
 @router.post("/")
-async def create_quest_route(
+async def create_quest(
     quest: QuestCreate,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)
@@ -75,6 +76,15 @@ async def create_quest_route(
     created = await crud.create_quest(db, quest, current_user)
     return {"id": created.id, "text": created.text}
 
+@router.put("/{quest_id}")
+async def change_quest(
+    quest: QuestCreate,
+    quest_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    created = await crud.update_quest(db,quest_id, quest, current_user.id)
+    return {"id": created.id, "text": created.text}
 
 
 @router.delete("/{quest_id}")

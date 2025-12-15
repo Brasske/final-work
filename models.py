@@ -1,15 +1,20 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from database import Base
 
-class CompliteQuestion(Base):
-    __tablename__ = 'complite_questions'
+class UserCompletedQuestion(Base):
+    __tablename__ = 'user_completed_questions'
     id = Column(Integer, primary_key=True)
+    
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    user = relationship('User', back_populates='complite_questions')
-
     question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
-    question = relationship('Question', back_populates='users_complite')
+    quest_id = Column(Integer, ForeignKey('quests.id'), nullable=False)  
+
+    __table_args__ = (UniqueConstraint('user_id', 'question_id'),)
+
+    user = relationship("User", back_populates="completed_questions")
+    question = relationship("Question", back_populates="completed_by_users")
+    quest = relationship("Quest") 
 
 class User(Base):
     __tablename__ = 'users'
@@ -20,7 +25,7 @@ class User(Base):
 
     created_quiz = relationship('Quest', back_populates='creator')
 
-    complite_questions = relationship('CompliteQuestion', back_populates='user')
+    completed_questions = relationship("UserCompletedQuestion", back_populates="user")
 
 
 class Quest(Base):
@@ -33,6 +38,9 @@ class Quest(Base):
     creator_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     creator = relationship('User', back_populates='created_quiz')
 
+    # users_complite = relationship('CompliteQuest', back_populates='quest')
+
+
 class Question(Base):
     __tablename__ = 'questions'
 
@@ -41,7 +49,7 @@ class Question(Base):
 
     answers = relationship(
         'Answer',
-        cascade='all, delete',
+        cascade='all, delete-orphan',
         back_populates='question',
         foreign_keys='Answer.question_id'
     )
@@ -57,7 +65,7 @@ class Question(Base):
     quest_id = Column(Integer, ForeignKey('quests.id', ondelete='CASCADE'), nullable=False)
     quest = relationship('Quest', back_populates='questions')
 
-    users_complite = relationship('CompliteQuestion', back_populates='question')
+    completed_by_users = relationship("UserCompletedQuestion", back_populates="question")
 
 class Answer(Base):
     __tablename__ = 'answers'

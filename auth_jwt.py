@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 
-SECRET_KEY = "SUPER_SECRET_KEY"  
+SECRET_KEY = 'w_@|3m3@|UV%96a=I!6a"uHQG!du5Z/Vl"gL&R'
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
