@@ -1,39 +1,58 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from fastapi import HTTPException
 from models import Quest, Question, Answer, User
 from schemas import QuestCreate
-from fastapi import HTTPException
+from sqlalchemy.orm import selectinload
 
+async def get_quest(db: AsyncSession, quest_id: int):
+    result = await db.execute(
+        select(Quest)
+        .options(
+            selectinload(Quest.creator),
+            selectinload(Quest.questions)
+            .selectinload(Question.answers),
+            selectinload(Quest.questions).selectinload(Question.correct_answer)
+        )
+        .where(Quest.id == quest_id)
+    )
+    quest = result.scalar_one_or_none()
 
-# def change_quest(db: Session, quest_data: QuestCreate, user):
-#     quest = db.query(Quest).filter(Quest.id == quest_data.id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="Квест не найден")
 
-def delete_quest(db: Session, quest_id, user_id):
-    quest = db.query(Quest).filter(Quest.id == quest_id).first()
-    
+    return quest
+
+async def delete_quest(db: AsyncSession, quest_id, user_id):
+    result = await db.execute(
+        select(Quest).where(Quest.id == quest_id)
+    )
+    quest = result.scalar_one_or_none()
+
     if not quest:
         raise HTTPException(status_code=404, detail="Квест не найден")
 
     if quest.creator_id != user_id:
         raise HTTPException(status_code=403, detail="Пользователь не владелец квиза")
-    
-    db.delete(quest)
-    db.commit()
 
-    return {"status":"ok"}
+    await db.delete(quest)
+    await db.commit()
 
-def create_quest(db: Session, quest_data: QuestCreate, user):
+    return {"status": "ok"}
+
+async def create_quest(db: AsyncSession, quest_data: QuestCreate, user):
     quest = Quest(
         text=quest_data.text,
         creator_id=user.id
     )
 
     db.add(quest)
-    db.flush()
+    await db.flush()
 
     for q in quest_data.questions:
         question = Question(text=q.text, quest=quest)
         db.add(question)
-        db.flush()
+        await db.flush()
 
         answers = []
         for a in q.answers:
@@ -41,59 +60,20 @@ def create_quest(db: Session, quest_data: QuestCreate, user):
             db.add(obj)
             answers.append(obj)
 
-        db.flush()
+        await db.flush()
         question.correct_answer = answers[q.correct_answer_id]
 
-    db.commit()
-    db.refresh(quest)
+    await db.commit()
+    await db.refresh(quest)
     return quest
 
-def get_quests(db: Session):
-    quests = (
-        db.query(Quest)
-        .join(User, User.id == Quest.creator_id)
-        .all()
-    )
-
-    res = []
-    for quest in quests:
-        res.append({
-            "id": quest.id,
-            "text": quest.text,
-            "creator_id": quest.creator_id,
-            "creator_name": quest.creator.login
-        })
-
-    return res
-
-from fastapi import HTTPException
-
-def get_quest(db: Session, quest_id: int):
-    quest = (
-        db.query(Quest)
-        .join(User, User.id == Quest.creator_id)
-        .filter(Quest.id == quest_id)
-        .first()
-    )
-
-    if not quest:
-        raise HTTPException(status_code=404, detail="Квест не найден")
-
-    return {
-        "id": quest.id,
-        "text": quest.text,
-        "creator_id": quest.creator_id,
-        "creator_name": quest.creator.login,
-        "questions": quest.questions
-    }
 
 
-def get_question(db: Session, quest_id: int, question_id: int):
-    return (
-        db.query(Question)
-        .filter(
+async def get_question(db: AsyncSession, quest_id: int, question_id: int):
+    result = await db.execute(
+        select(Question).where(
             Question.id == question_id,
             Question.quest_id == quest_id
         )
-        .first()
     )
+    return result.scalar_one_or_none()

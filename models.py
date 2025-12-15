@@ -2,6 +2,12 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from database import Base
 
+class CompliteQuestion(Base):
+    __tablename__ = 'complite_questions'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
+
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
