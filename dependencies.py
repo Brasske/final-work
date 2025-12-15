@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from database import get_db
 from models import User
@@ -21,7 +22,7 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid token")
 
     result = await db.execute(
-        select(User).where(User.id == int(user_id))
+        select(User).options(selectinload(User.complite_questions)).where(User.id == int(user_id))
     )
     user = result.scalar_one_or_none()
 

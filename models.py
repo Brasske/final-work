@@ -6,16 +6,22 @@ class CompliteQuestion(Base):
     __tablename__ = 'complite_questions'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user = relationship('User', back_populates='complite_questions')
+
     question_id = Column(Integer, ForeignKey('questions.id'), nullable=False)
+    question = relationship('Question', back_populates='users_complite')
 
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     login = Column(String, nullable=False)
     username = Column(String, nullable=False)
-    hashed_password = Column(String)
+    hashed_password = Column(String)    
 
     created_quiz = relationship('Quest', back_populates='creator')
+
+    complite_questions = relationship('CompliteQuestion', back_populates='user')
+
 
 class Quest(Base):
     __tablename__ = 'quests'
@@ -51,6 +57,7 @@ class Question(Base):
     quest_id = Column(Integer, ForeignKey('quests.id', ondelete='CASCADE'), nullable=False)
     quest = relationship('Quest', back_populates='questions')
 
+    users_complite = relationship('CompliteQuestion', back_populates='question')
 
 class Answer(Base):
     __tablename__ = 'answers'

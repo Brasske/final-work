@@ -20,7 +20,10 @@ async def get_quests(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{quest_id}")
-async def get_quest(quest_id: int, db: AsyncSession = Depends(get_db)):
+async def get_quest(
+    quest_id: int,
+    db: AsyncSession = Depends(get_db)
+    ):
     quest = await crud.get_quest(db, quest_id)
     if not quest:
         raise HTTPException(status_code=404, detail="Вопрос не найден")
@@ -56,7 +59,10 @@ async def passing_quest(
             "is_correct": False,
             "correct_answer_id": question.correct_answer_id
         }
-
+    elif user:
+        await crud.get_answer(question_id=question.id, user_id=user.id, db=db)
+        return {"is_correct": True, "saved": True}
+    
     return {"is_correct": True}
 
 
