@@ -6,6 +6,17 @@ from schemas import QuestCreate
 from sqlalchemy import delete, select, exists, func
 from sqlalchemy.orm import selectinload, load_only, joinedload
 
+async def get_quests(db: AsyncSession):
+    result = await db.execute(
+        select(Quest)
+        .options(
+            selectinload(Quest.creator).load_only(User.id),
+            selectinload(Quest.creator).load_only(User.login),
+        )
+    )
+    quests = result.scalars().all()
+    return quests
+
 async def get_my_quests(db: AsyncSession, user_id: int):
     result = await db.execute(
         select(Quest).where(Quest.creator_id == user_id)
@@ -162,13 +173,12 @@ async def record_correct_answer(
         ))
     )
     if exists_query.scalar():
-        return False  # уже сохранено
+        return False  
 
-    # Создаём новую запись
     record = UserCompletedQuestion(
         user_id=user_id,
         question_id=question_id,
-        quest_id=quest_id  # можно получить из вопроса, но для простоты передаём
+        quest_id=quest_id  
     )
     db.add(record)
     await db.commit()
