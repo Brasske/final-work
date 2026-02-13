@@ -14,6 +14,15 @@ SessionLocal = sessionmaker(
 
 Base = declarative_base()
 
+async def lifespan(fapp: FastAPI):
+    # establish a connection to the database    
+    fapp.state.async_session = await get_user_db().__anext__()
+    yield
+    # close the connection to the database
+    await fapp.state.async_session.close()
+    await fapp.state.async_session.engine.dispose()
+
+
 async def get_db():
     async with SessionLocal() as db:
         yield db

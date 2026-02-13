@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException
 from models import Quest, Question, Answer, User, UserCompletedQuestion
-from schemas import QuestCreate
+from schemas import QuestCreate, UserUpdate
 from sqlalchemy import delete, select, exists, func
 from sqlalchemy.orm import selectinload, load_only, joinedload
 
@@ -204,3 +204,23 @@ async def get_user_quest_progress(db: AsyncSession, user_id: int):
     )
 
     return result.all() 
+
+async def get_user(db: AsyncSession, user_id: int) -> User | None:
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
+
+async def user_update(db: AsyncSession, user_id: int, userUpdate: UserUpdate):
+
+    user = await get_user(db=db, user_id=user_id)
+
+    if user is None:
+        return None
+
+    update_data = userUpdate.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(user, key, value)
+
+    await db.commit()
+    await db.refresh(user)
+    return user

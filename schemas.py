@@ -15,10 +15,21 @@ class QuestCreate(BaseModel):
 
 class AnswerGet(BaseModel):
     id: int
-
 class UserCreate(BaseModel):
     login: str
-    password: str
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+
+    class Config:
+        from_attributes = True
+
+class UserUpdate(BaseModel):
+    password: Optional[str] = None
+    username: Optional[str] = None
+
+class UserChange(BaseModel):
     username: str
 
 class UserLogin(BaseModel):

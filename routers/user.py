@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
 from dependencies import get_current_user
+from schemas import UserUpdate, UserResponse
 from models import User
 import crud
 
@@ -10,6 +11,19 @@ router = APIRouter(
     prefix="/user",
     tags=["User"]
 )
+
+
+
+@router.patch("/{user_id}", response_model=UserResponse)
+async def patch_user(
+    user_id: int,
+    user_update: UserUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    updated_user = await crud.user_update(db, user_id, user_update)
+    if updated_user is None:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    return updated_user
 
 
 @router.get(
